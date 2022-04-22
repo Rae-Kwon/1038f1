@@ -33,7 +33,7 @@ const Sidebar = ({
       <Typography className={classes.title}>Chats</Typography>
       <Search handleChange={handleChange} />
       {conversations
-        .filter((conversation) =>
+        .filter((conversation) => 
           conversation.otherUser.username.includes(searchTerm)
         )
         .map((conversation) => {
