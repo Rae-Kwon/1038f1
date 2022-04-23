@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FormControl, FilledInput } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -23,7 +23,7 @@ const Input = ({ otherUser, conversationId, user, postMessage }) => {
     setText(event.target.value);
   };
 
-  const handleSubmit = async (event) => {
+  const handleSubmit = (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const formElements = form.elements;
@@ -32,9 +32,9 @@ const Input = ({ otherUser, conversationId, user, postMessage }) => {
       text: formElements.text.value,
       recipientId: otherUser.id,
       conversationId,
-      sender: conversationId ? user : null,
+      sender: user,
     };
-    await postMessage(reqBody);
+    postMessage(reqBody);
     setText('');
   };
 

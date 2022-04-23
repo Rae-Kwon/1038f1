@@ -41,12 +41,15 @@ const Home = ({ user, logout }) => {
         newState.push(fakeConvo);
       }
     });
-
     setConversations(newState);
   };
 
   const clearSearchedUsers = () => {
-    setConversations((prev) => prev.filter((convo) => convo.id));
+    setConversations((prev) => {
+      return prev.filter((convo) => {
+        return convo.id;
+      });
+    });
   };
 
   const saveMessage = async (body) => {
@@ -65,7 +68,6 @@ const Home = ({ user, logout }) => {
   const postMessage = async (body) => {
     try {
       const data = await saveMessage(body);
-
       if (!body.conversationId) {
         addNewConvo(body.recipientId, data.message);
       } else {
@@ -79,22 +81,34 @@ const Home = ({ user, logout }) => {
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
+      const newConvo = {
+        messages: [],
+        latestMessageText: '',
+        otherUser: null,
+        id: null,
+      };
       conversations.forEach((convo) => {
         if (convo.otherUser.id === recipientId) {
-          convo.messages.push(message);
-          convo.latestMessageText = message.text;
-          convo.id = message.conversationId;
+          newConvo.messages.push(message);
+          newConvo.latestMessageText = message.text;
+          newConvo.otherUser = convo.otherUser;
+          newConvo.id = message.conversationId;
         }
       });
-      setConversations(conversations);
+      const filterdFakeConvos = conversations.filter(
+        (convo) => convo.otherUser.id !== newConvo.otherUser.id
+      );
+
+      setConversations(filterdFakeConvos);
+      setConversations((prev) => [newConvo, ...prev]);
     },
     [setConversations, conversations]
   );
 
   const addMessageToConversation = useCallback(
-    async (data) => {
+    (data) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
-      const { message, sender = null } = await data;
+      const { message, sender = null } = data;
       if (sender !== null) {
         const newConvo = {
           id: message.conversationId,
