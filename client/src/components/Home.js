@@ -79,28 +79,29 @@ const Home = ({ user, logout }) => {
     }
   };
 
+  const findIndexOfConversation = useCallback((conversations) => {
+    return conversations.findIndex((conversation) => (conversation.otherUser.username === activeConversation))
+  }, [activeConversation])
+
   const addNewConvo = useCallback(
     (recipientId, message) => {
-      const newConvo = {
-        messages: [],
-        latestMessageText: '',
-        otherUser: null,
-        id: null,
-      };
+      let convoCopy = {};
       conversations.forEach((convo) => {
         if (convo.otherUser.id === recipientId) {
-          newConvo.messages.push(message);
-          newConvo.latestMessageText = message.text;
-          newConvo.otherUser = convo.otherUser;
-          newConvo.id = message.conversationId;
+          convoCopy = { ...convo }
+          convoCopy.messages.push(message);
+          convoCopy.latestMessageText = message.text;
+          convoCopy.otherUser = convo.otherUser;
+          convoCopy.id = message.conversationId;
         }
       });
-      const filterdFakeConvos = conversations.filter(
-        (convo) => convo.otherUser.id !== newConvo.otherUser.id
+
+      const filteredFakeConvos = conversations.filter(
+        (convo) => convo.otherUser.id !== convoCopy.otherUser.id
       );
 
-      setConversations(filterdFakeConvos);
-      setConversations((prev) => [newConvo, ...prev]);
+      setConversations(filteredFakeConvos);
+      setConversations((prev) => [convoCopy, ...prev]);
     },
     [setConversations, conversations]
   );
@@ -118,15 +119,23 @@ const Home = ({ user, logout }) => {
         newConvo.latestMessageText = message.text;
         setConversations((prev) => [newConvo, ...prev]);
       }
+
+      let convoCopy = {};
       conversations.forEach((convo) => {
         if (convo.id === message.conversationId) {
-          convo.messages.push(message);
-          convo.latestMessageText = message.text;
+          convoCopy = { ...convo }
+          convoCopy.messages.push(message);
+          convoCopy.latestMessageText = message.text;
         }
       });
-      setConversations(conversations);
+
+      const indexOfConversation = findIndexOfConversation(conversations)
+      const conversationsCopy = [...conversations]
+      conversationsCopy.splice(indexOfConversation, 1)
+      conversationsCopy.unshift(convoCopy)
+      setConversations(conversationsCopy);
     },
-    [setConversations, conversations]
+    [setConversations, conversations, findIndexOfConversation]
   );
 
   const setActiveChat = (username) => {
