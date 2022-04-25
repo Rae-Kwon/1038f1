@@ -33,6 +33,12 @@ const ActiveChat = ({
       )
     : {};
 
+    console.log("conversation", conversation)
+
+  const messages = conversation ? conversation.messages.sort((currentMessage, nextMessage) => (currentMessage.createdAt > nextMessage.createdAt) ? 1 : -1) : null
+
+  // console.log("Sorted Messages: ", messages)
+
   const isConversation = (obj) => {
     return obj !== {} && obj !== undefined;
   };
@@ -49,7 +55,7 @@ const ActiveChat = ({
             {user && (
               <>
                 <Messages
-                  messages={conversation.messages}
+                  messages={messages}
                   otherUser={conversation.otherUser}
                   userId={user.id}
                 />
