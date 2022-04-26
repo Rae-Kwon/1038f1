@@ -79,23 +79,6 @@ const Home = ({ user, logout }) => {
     }
   };
 
-  const findIndexOfConvo = useCallback(
-    (conversations) => {
-      return conversations.findIndex(
-        (conversation) => conversation.otherUser.username === activeConversation
-      );
-    },
-    [activeConversation]
-  );
-
-  const moveConversationToTop = () => {
-    const indexOfConversation = findIndexOfConvo(conversations);
-    const conversationsCopy = [...conversations];
-    const currentConvo = conversationsCopy.splice(indexOfConversation, 1).pop();
-    conversationsCopy.unshift(currentConvo);
-    setConversations(conversationsCopy);
-  };
-
   const addNewConvo = useCallback(
     (recipientId, message) => {
       setConversations((prev) =>
@@ -112,10 +95,8 @@ const Home = ({ user, logout }) => {
           }
         })
       );
-      // moves recently updated conversation to top of sidebar
-      moveConversationToTop();
     },
-    [setConversations, conversations]
+    [setConversations]
   );
 
   const addMessageToConversation = useCallback(
@@ -136,10 +117,8 @@ const Home = ({ user, logout }) => {
           }
         })
       );
-      // moves recently updated conversation to top of sidebar
-      moveConversationToTop();
     },
-    [setConversations, conversations, findIndexOfConvo]
+    [setConversations]
   );
 
   const setActiveChat = (username) => {
@@ -224,6 +203,7 @@ const Home = ({ user, logout }) => {
     }
   };
 
+  console.log('convos', conversations);
   return (
     <>
       <Button onClick={handleLogout}>Logout</Button>
