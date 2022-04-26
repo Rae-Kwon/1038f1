@@ -28,7 +28,7 @@ router.get("/", async (req, res, next) => {
           as: "user1",
           where: {
             id: {
-              [Op.not]: userId,
+              [Op.eq]: userId,
             },
           },
           attributes: ["id", "username", "photoUrl"],
@@ -54,9 +54,10 @@ router.get("/", async (req, res, next) => {
 
       // set a property "otherUser" so that frontend will have easier access
       if (convoJSON.user1) {
-        convoJSON.otherUser = convoJSON.user1;
+        convoJSON.user = convoJSON.user1;
         delete convoJSON.user1;
-      } else if (convoJSON.user2) {
+      }
+      if (convoJSON.user2) {
         convoJSON.otherUser = convoJSON.user2;
         delete convoJSON.user2;
       }
