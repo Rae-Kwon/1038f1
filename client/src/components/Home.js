@@ -203,7 +203,6 @@ const Home = ({ user, logout }) => {
     }
   };
 
-  console.log('convos', conversations);
   return (
     <>
       <Button onClick={handleLogout}>Logout</Button>
