@@ -79,29 +79,41 @@ const Home = ({ user, logout }) => {
     }
   };
 
-  const findIndexOfConversation = useCallback((conversations) => {
-    return conversations.findIndex((conversation) => (conversation.otherUser.username === activeConversation))
-  }, [activeConversation])
+  const findIndexOfConvo = useCallback(
+    (conversations) => {
+      return conversations.findIndex(
+        (conversation) => conversation.otherUser.username === activeConversation
+      );
+    },
+    [activeConversation]
+  );
+
+  const moveConversationToTop = () => {
+    const indexOfConversation = findIndexOfConvo(conversations);
+    const conversationsCopy = [...conversations];
+    const currentConvo = conversationsCopy.splice(indexOfConversation, 1).pop();
+    conversationsCopy.unshift(currentConvo);
+    setConversations(conversationsCopy);
+  };
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
-      let convoCopy = {};
-      conversations.forEach((convo) => {
-        if (convo.otherUser.id === recipientId) {
-          convoCopy = { ...convo }
-          convoCopy.messages.push(message);
-          convoCopy.latestMessageText = message.text;
-          convoCopy.otherUser = convo.otherUser;
-          convoCopy.id = message.conversationId;
-        }
-      });
-
-      const filteredFakeConvos = conversations.filter(
-        (convo) => convo.otherUser.id !== convoCopy.otherUser.id
+      setConversations((prev) =>
+        prev.map((convo) => {
+          if (convo.otherUser.id === recipientId) {
+            const convoCopy = { ...convo };
+            convoCopy.messages.push(message);
+            convoCopy.latestMessageText = message.text;
+            convoCopy.otherUser = { ...convo.otherUser };
+            convoCopy.id = message.conversationId;
+            return convoCopy;
+          } else {
+            return convo;
+          }
+        })
       );
-
-      setConversations(filteredFakeConvos);
-      setConversations((prev) => [convoCopy, ...prev]);
+      // moves recently updated conversation to top of sidebar
+      moveConversationToTop();
     },
     [setConversations, conversations]
   );
@@ -110,32 +122,24 @@ const Home = ({ user, logout }) => {
     (data) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
       const { message, sender = null } = data;
-      if (sender !== null) {
-        const newConvo = {
-          id: message.conversationId,
-          otherUser: sender,
-          messages: [message],
-        };
-        newConvo.latestMessageText = message.text;
-        setConversations((prev) => [newConvo, ...prev]);
-      }
 
-      let convoCopy = {};
-      conversations.forEach((convo) => {
-        if (convo.id === message.conversationId) {
-          convoCopy = { ...convo }
-          convoCopy.messages.push(message);
-          convoCopy.latestMessageText = message.text;
-        }
-      });
-
-      const indexOfConversation = findIndexOfConversation(conversations)
-      const conversationsCopy = [...conversations]
-      conversationsCopy.splice(indexOfConversation, 1)
-      conversationsCopy.unshift(convoCopy)
-      setConversations(conversationsCopy);
+      setConversations((prev) =>
+        prev.map((convo) => {
+          if (convo.id === message.conversationId) {
+            const convoCopy = { ...convo };
+            convoCopy.messages.push(message);
+            convoCopy.latestMessageText = message.text;
+            convoCopy.user = { ...sender };
+            return convoCopy;
+          } else {
+            return convo;
+          }
+        })
+      );
+      // moves recently updated conversation to top of sidebar
+      moveConversationToTop();
     },
-    [setConversations, conversations, findIndexOfConversation]
+    [setConversations, conversations, findIndexOfConvo]
   );
 
   const setActiveChat = (username) => {
