@@ -23,7 +23,7 @@ const SidebarContainer = ({
   const handleChange = async (event) => {
     if (event.target.value === '') {
       // clear searched convos
-      clearSearchedUsers();
+      clearSearchedUsers()
       setSearchTerm('');
       return;
     }

@@ -11,6 +11,7 @@ router.get("/", async (req, res, next) => {
       return res.sendStatus(401);
     }
     const userId = req.user.id;
+
     const conversations = await Conversation.findAll({
       where: {
         [Op.or]: {
