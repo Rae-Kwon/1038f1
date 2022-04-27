@@ -33,8 +33,6 @@ const ActiveChat = ({
       )
     : {};
 
-  const messages = conversation ? conversation.messages.sort((currentMessage, nextMessage) => (currentMessage.createdAt > nextMessage.createdAt) ? 1 : -1) : null
-
   const isConversation = (obj) => {
     return obj !== {} && obj !== undefined;
   };
@@ -50,8 +48,9 @@ const ActiveChat = ({
           <Box className={classes.chatContainer}>
             {user && (
               <>
+              {console.log(conversation.messages)}
                 <Messages
-                  messages={messages}
+                  messages={conversation.messages}
                   otherUser={conversation.otherUser}
                   userId={user.id}
                 />

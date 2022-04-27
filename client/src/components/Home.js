@@ -27,6 +27,7 @@ const Home = ({ user, logout }) => {
 
   const addSearchedUsers = (users) => {
     const currentUsers = {};
+    console.log(users)
 
     // make table of current users so we can lookup faster
     conversations.forEach((convo) => {
@@ -45,11 +46,7 @@ const Home = ({ user, logout }) => {
   };
 
   const clearSearchedUsers = () => {
-    setConversations((prev) => {
-      return prev.filter((convo) => {
-        return convo.id;
-      });
-    });
+    setConversations((prev) => prev.filter((convo) => convo.id));
   };
 
   const saveMessage = async (body) => {
@@ -85,9 +82,8 @@ const Home = ({ user, logout }) => {
         prev.map((convo) => {
           if (convo.otherUser.id === recipientId) {
             const convoCopy = { ...convo };
-            convoCopy.messages.push(message);
+            convoCopy.messages = [...convoCopy.messages, message];
             convoCopy.latestMessageText = message.text;
-            convoCopy.otherUser = { ...convo.otherUser };
             convoCopy.id = message.conversationId;
             return convoCopy;
           } else {
@@ -95,6 +91,7 @@ const Home = ({ user, logout }) => {
           }
         })
       );
+      console.log(conversations)
     },
     [setConversations]
   );
@@ -108,9 +105,8 @@ const Home = ({ user, logout }) => {
         prev.map((convo) => {
           if (convo.id === message.conversationId) {
             const convoCopy = { ...convo };
-            convoCopy.messages.push(message);
+            convoCopy.messages = [...convoCopy.messages, message];
             convoCopy.latestMessageText = message.text;
-            convoCopy.user = { ...sender };
             return convoCopy;
           } else {
             return convo;
@@ -187,7 +183,17 @@ const Home = ({ user, logout }) => {
     const fetchConversations = async () => {
       try {
         const { data } = await axios.get('/api/conversations');
-        setConversations(data);
+        const dataCopy = [...data]
+        dataCopy.forEach((conversation) => {
+          conversation.messages = conversation.messages.sort((currentConvo, nextConvo) => {
+            if (currentConvo > nextConvo) {
+              return 1
+            } else {
+              return -1
+            }
+          })
+        })
+        setConversations(dataCopy);
       } catch (error) {
         console.error(error);
       }
