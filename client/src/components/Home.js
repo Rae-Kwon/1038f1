@@ -121,8 +121,6 @@ const Home = ({ user, logout }) => {
               updateMessage(reqBody);
               updateMessageInConversation(message, reqBody)
             }
-          } else {
-            console.log('not updated');
           }
         }
       });
