@@ -8,6 +8,11 @@ const SidebarContainer = ({
   clearSearchedUsers,
   addSearchedUsers,
   setActiveChat,
+  updateMessage,
+  messagesSeen,
+  updateMessagesSeen,
+  activeConversation,
+  handleMessageSeen,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -43,6 +48,11 @@ const SidebarContainer = ({
       conversations={conversations}
       user={user}
       setActiveChat={setActiveChat}
+      updateMessage={updateMessage}
+      messagesSeen={messagesSeen}
+      updateMessagesSeen={updateMessagesSeen}
+      activeConversation={activeConversation}
+      handleMessageSeen={handleMessageSeen}
     />
   );
 };

@@ -27,9 +27,9 @@ const ActiveChat = ({
 }) => {
   const classes = useStyles();
 
-  const conversation = conversations
+  const conversation = conversations && activeConversation
     ? conversations.find(
-        (conversation) => conversation.otherUser.username === activeConversation
+        (conversation) => conversation.otherUser.username === activeConversation.username
       )
     : {};
 
@@ -48,7 +48,6 @@ const ActiveChat = ({
           <Box className={classes.chatContainer}>
             {user && (
               <>
-              {console.log(conversation.messages)}
                 <Messages
                   messages={conversation.messages}
                   otherUser={conversation.otherUser}

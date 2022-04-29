@@ -27,7 +27,6 @@ const Home = ({ user, logout }) => {
 
   const addSearchedUsers = (users) => {
     const currentUsers = {};
-    console.log(users)
 
     // make table of current users so we can lookup faster
     conversations.forEach((convo) => {
@@ -66,7 +65,7 @@ const Home = ({ user, logout }) => {
     try {
       const data = await saveMessage(body);
       if (!body.conversationId) {
-        addNewConvo(body.recipientId, data.message);
+        addNewConvo(body.recipientId, data.message, data.sender);
       } else {
         addMessageToConversation(data);
       }
@@ -76,13 +75,69 @@ const Home = ({ user, logout }) => {
     }
   };
 
+  const updateMessage = async (body) => {
+    const { data } = await axios.put('/api/messages', body);
+    return data;
+  };
+
+  const updateMessageInConversation = useCallback(
+    (message, reqBody) => {
+      setConversations((prev) => 
+        prev.map((convo) => {
+          if (convo.id === message.conversationId) {
+            const convoCopy = { ...convo }
+            convoCopy.messages.map((message) => message.seenBy = [...message.seenBy, reqBody.seenBy])
+            return convoCopy
+          } else {
+            return convo
+          }
+        }));
+    },
+    [setConversations]
+  );
+
+  const handleMessageSeen = useCallback(
+    (messages) => {
+      const reqBody = {
+        seenBy: {},
+        id: null,
+      };
+
+      messages.forEach((message) => {
+        if (message.senderId === activeConversation.id) {
+          const messageCreatedAt = new Date(message.createdAt).getTime();
+          const timeNow = Date.now();
+          const userHasSeen = message.seenBy.some(
+            (seen) => seen.id === user.id
+          );
+
+          if (messageCreatedAt < timeNow) {
+            reqBody.seenBy = { id: user.id, username: user.username };
+            reqBody.id = message.id;
+          }
+
+          if (!userHasSeen) {
+            if (message.senderId !== user.id) {
+              updateMessage(reqBody);
+              updateMessageInConversation(message, reqBody)
+            }
+          } else {
+            console.log('not updated');
+          }
+        }
+      });
+      return reqBody;
+    },
+    [activeConversation, updateMessageInConversation, user]
+  );
+
   const addNewConvo = useCallback(
     (recipientId, message) => {
       setConversations((prev) =>
         prev.map((convo) => {
           if (convo.otherUser.id === recipientId) {
             const convoCopy = { ...convo };
-            convoCopy.messages = [...convoCopy.messages, message];
+            convoCopy.messages = [...convo.messages, message];
             convoCopy.latestMessageText = message.text;
             convoCopy.id = message.conversationId;
             return convoCopy;
@@ -91,7 +146,6 @@ const Home = ({ user, logout }) => {
           }
         })
       );
-      console.log(conversations)
     },
     [setConversations]
   );
@@ -105,8 +159,9 @@ const Home = ({ user, logout }) => {
         prev.map((convo) => {
           if (convo.id === message.conversationId) {
             const convoCopy = { ...convo };
-            convoCopy.messages = [...convoCopy.messages, message];
+            convoCopy.messages = [...convo.messages, message];
             convoCopy.latestMessageText = message.text;
+            convoCopy.user = { ...sender };
             return convoCopy;
           } else {
             return convo;
@@ -117,9 +172,12 @@ const Home = ({ user, logout }) => {
     [setConversations]
   );
 
-  const setActiveChat = (username) => {
-    setActiveConversation(username);
-  };
+  const setActiveChat = useCallback(
+    (id, username) => {
+      setActiveConversation({ id, username });
+    },
+    [setActiveConversation]
+  );
 
   const addOnlineUser = useCallback((id) => {
     setConversations((prev) =>
@@ -183,16 +241,18 @@ const Home = ({ user, logout }) => {
     const fetchConversations = async () => {
       try {
         const { data } = await axios.get('/api/conversations');
-        const dataCopy = [...data]
+        const dataCopy = [...data];
         dataCopy.forEach((conversation) => {
-          conversation.messages = conversation.messages.sort((currentConvo, nextConvo) => {
-            if (currentConvo > nextConvo) {
-              return 1
-            } else {
-              return -1
+          conversation.messages = conversation.messages.sort(
+            (currentConvo, nextConvo) => {
+              if (currentConvo > nextConvo) {
+                return 1;
+              } else {
+                return -1;
+              }
             }
-          })
-        })
+          );
+        });
         setConversations(dataCopy);
       } catch (error) {
         console.error(error);
@@ -220,6 +280,9 @@ const Home = ({ user, logout }) => {
           clearSearchedUsers={clearSearchedUsers}
           addSearchedUsers={addSearchedUsers}
           setActiveChat={setActiveChat}
+          updateMessage={updateMessage}
+          activeConversation={activeConversation}
+          handleMessageSeen={handleMessageSeen}
         />
         <ActiveChat
           activeConversation={activeConversation}
