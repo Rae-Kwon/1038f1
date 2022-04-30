@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Box, Typography } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -26,12 +26,18 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ChatContent = ({ conversation, user }) => {
+const ChatContent = ({
+  conversation,
+  user,
+  unreadCount,
+  setUnreadCount,
+  otherUserMessages,
+  setOtherUserMessages,
+}) => {
   const classes = useStyles();
 
   const { otherUser, messages } = conversation;
   const latestMessageText = conversation.id && conversation.latestMessageText;
-  const [otherUserMessages, setOtherUserMessages] = useState([]);
 
   useEffect(() => {
     const messagesCopy = [...messages];
@@ -39,7 +45,7 @@ const ChatContent = ({ conversation, user }) => {
       (message) => message.senderId !== user.id
     );
     setOtherUserMessages(filteredMessages);
-  }, [messages, user]);
+  }, [messages, setOtherUserMessages, user]);
 
   const messagesSeen = otherUserMessages.every(
     (message) => message.seenBy.length > 0

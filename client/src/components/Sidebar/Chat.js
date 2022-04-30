@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { Box } from '@material-ui/core';
+import React, { useEffect, useState } from 'react';
+import { Badge, Box } from '@material-ui/core';
 import { BadgeAvatar, ChatContent } from '../Sidebar';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -14,6 +14,7 @@ const useStyles = makeStyles((theme) => ({
     '&:hover': {
       cursor: 'grab',
     },
+    notificationBadge: {},
   },
 }));
 
@@ -21,18 +22,38 @@ const Chat = ({
   conversation,
   user,
   setActiveChat,
-  updateMessage,
   activeConversation,
-  handleMessageSeen
+  handleMessageSeen,
 }) => {
   const classes = useStyles();
   const { otherUser, messages } = conversation;
+  const [otherUserMessages, setOtherUserMessages] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let currentUnreadCount = 0;
+    messages.forEach((message) => {
+      if (
+        message.senderId !== user.id &&
+        message.conversationId === conversation.id
+      ) {
+        const userHasSeen = message.seenBy.some((seen) => seen.id === user.id);
+        if (!userHasSeen) {
+          currentUnreadCount += 1;
+        }
+      }
+    });
+    setUnreadCount(currentUnreadCount);
+  }, [messages, conversation, user]);
 
   useEffect(() => {
     if (activeConversation && activeConversation.id !== user.id) {
-      handleMessageSeen(messages)
+      handleMessageSeen(messages);
+      if (activeConversation.id === otherUser.id) {
+        setUnreadCount(0);
+      }
     }
-  }, [messages, activeConversation, handleMessageSeen, user])
+  }, [messages, activeConversation, otherUser, handleMessageSeen, user]);
 
   const handleClick = (conversation) => {
     setActiveChat(conversation.otherUser.id, conversation.otherUser.username);
@@ -46,7 +67,20 @@ const Chat = ({
         online={otherUser.online}
         sidebar={true}
       />
-      <ChatContent conversation={conversation} user={user} />
+      <ChatContent
+        conversation={conversation}
+        user={user}
+        unreadCount={unreadCount}
+        otherUserMessages={otherUserMessages}
+        setOtherUserMessages={setOtherUserMessages}
+        setUnreadCount={setUnreadCount}
+      />
+      <Badge
+        className={classes.notificationBadge}
+        badgeContent={unreadCount}
+        color="primary"
+        max={99}
+      />
     </Box>
   );
 };

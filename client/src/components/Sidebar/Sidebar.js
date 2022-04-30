@@ -28,7 +28,7 @@ const Sidebar = ({
   messagesSeen,
   updateMessagesSeen,
   activeConversation,
-  handleMessageSeen
+  handleMessageSeen,
 }) => {
   const classes = useStyles();
 

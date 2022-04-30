@@ -65,7 +65,7 @@ const Home = ({ user, logout }) => {
     try {
       const data = await saveMessage(body);
       if (!body.conversationId) {
-        addNewConvo(body.recipientId, data.message, data.sender);
+        addNewConvo(body.recipientId, data.message);
       } else {
         addMessageToConversation(data);
       }
@@ -82,16 +82,20 @@ const Home = ({ user, logout }) => {
 
   const updateMessageInConversation = useCallback(
     (message, reqBody) => {
-      setConversations((prev) => 
+      setConversations((prev) =>
         prev.map((convo) => {
           if (convo.id === message.conversationId) {
-            const convoCopy = { ...convo }
-            convoCopy.messages.map((message) => message.seenBy = [...message.seenBy, reqBody.seenBy])
-            return convoCopy
+            const convoCopy = { ...convo };
+            convoCopy.messages.map(
+              (message) =>
+                (message.seenBy = [...message.seenBy, reqBody.seenBy])
+            );
+            return convoCopy;
           } else {
-            return convo
+            return convo;
           }
-        }));
+        })
+      );
     },
     [setConversations]
   );
@@ -119,7 +123,7 @@ const Home = ({ user, logout }) => {
           if (!userHasSeen) {
             if (message.senderId !== user.id) {
               updateMessage(reqBody);
-              updateMessageInConversation(message, reqBody)
+              updateMessageInConversation(message, reqBody);
             }
           }
         }
@@ -152,20 +156,29 @@ const Home = ({ user, logout }) => {
     (data) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
       const { message, sender = null } = data;
-
-      setConversations((prev) =>
-        prev.map((convo) => {
-          if (convo.id === message.conversationId) {
-            const convoCopy = { ...convo };
-            convoCopy.messages = [...convo.messages, message];
-            convoCopy.latestMessageText = message.text;
-            convoCopy.user = { ...sender };
-            return convoCopy;
-          } else {
-            return convo;
-          }
-        })
-      );
+      if (sender !== null) {
+        const newConvo = {
+          id: message.conversationId,
+          otherUser: sender,
+          messages: [message],
+        };
+        newConvo.latestMessageText = message.text;
+        setConversations((prev) => [newConvo, ...prev]);
+      } else {
+        setConversations((prev) =>
+          prev.map((convo) => {
+            if (convo.id === message.conversationId) {
+              const convoCopy = { ...convo };
+              convoCopy.messages = [...convo.messages, message];
+              convoCopy.latestMessageText = message.text;
+              convoCopy.user = { ...sender };
+              return convoCopy;
+            } else {
+              return convo;
+            }
+          })
+        );
+      }
     },
     [setConversations]
   );
@@ -212,7 +225,6 @@ const Home = ({ user, logout }) => {
     socket.on('add-online-user', addOnlineUser);
     socket.on('remove-offline-user', removeOfflineUser);
     socket.on('new-message', addMessageToConversation);
-
     return () => {
       // before the component is destroyed
       // unbind all event handlers used in this component

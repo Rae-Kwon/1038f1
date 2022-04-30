@@ -21,7 +21,7 @@ router.post("/", async (req, res, next) => {
 				conversationId,
         seenBy: []
 			});
-			return res.json({ message, sender });
+			return res.json({ message });
 		}
 		// if we don't have conversation id, find a conversation to make sure it doesn't already exist
 		let conversation = await Conversation.findConversation(
@@ -64,7 +64,6 @@ router.put("/", async (req, res, next) => {
 			{ seenBy: Sequelize.fn("array_append", Sequelize.col("seenBy"), data) },
 			{ where: { id } }
 		);
-		console.log("msg", message);
 
 		res.json({ message });
 	} catch (error) {
