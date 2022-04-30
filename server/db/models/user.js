@@ -34,6 +34,10 @@ const User = db.define("user", {
     get() {
       return () => this.getDataValue("salt");
     }
+  },
+  app_version: {
+    type: Sequelize.STRING,
+    allowNull: true
   }
 });
 
