@@ -18,5 +18,6 @@ Conversation.belongsToMany(User, { through: UserConversations });
 module.exports = {
   User,
   Conversation,
-  Message
+  Message,
+  UserConversations
 };
