@@ -30,22 +30,6 @@ const Chat = ({
   const [otherUserMessages, setOtherUserMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
-    if (activeConversation && activeConversation.id !== user.id) {
-      handleMessageSeen(messages, otherUser);
-      if (activeConversation.id === otherUser.id) {
-        setUnreadCount(0);
-      }
-    }
-  }, [
-    messages,
-    activeConversation,
-    otherUser,
-    handleMessageSeen,
-    user,
-    setUnreadCount,
-  ]);
-
   const handleClick = (conversation) => {
     setActiveChat(
       conversation.otherUser.id,
@@ -53,6 +37,24 @@ const Chat = ({
       conversation.id
     );
   };
+
+  useEffect(() => {
+    if (
+      activeConversation &&
+      activeConversation.id !== user.id &&
+      activeConversation.conversationId &&
+      activeConversation.id === otherUser.id
+    ) {
+      handleMessageSeen(messages, otherUser, activeConversation);
+      setUnreadCount(0);
+    }
+  }, [
+    messages,
+    activeConversation,
+    otherUser,
+    handleMessageSeen,
+    user,
+  ]);
 
   return (
     <Box onClick={() => handleClick(conversation)} className={classes.root}>

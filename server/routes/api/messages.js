@@ -53,8 +53,7 @@ router.post("/", async (req, res, next) => {
 
 router.put("/", async (req, res, next) => {
 	try {
-		const { messages, otherUser, activeConversation, user } = req.body;
-		const conversationId = activeConversation.conversationId;
+		const { messages, otherUser, conversationId, user } = req.body;
 		if (!req.user && !otherUser) {
 			return res.sendStatus(404);
 		}
@@ -73,7 +72,6 @@ router.put("/", async (req, res, next) => {
 				);
 			})
 		);
-
 		res.json({ message });
 	} catch (error) {
 		next(error);

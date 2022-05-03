@@ -28,16 +28,15 @@ const ActiveChat = ({
   const classes = useStyles();
   const [messages, setMessages] = useState(null);
 
-  const conversation = useMemo(
-    () =>
-      conversations && activeConversation
-        ? conversations.find(
-            (conversation) =>
-              conversation.otherUser.id === activeConversation.id
-          )
-        : {},
-    [conversations, activeConversation]
-  );
+  const conversation = useMemo(() => {
+    if (conversations && activeConversation) {
+      return conversations.find(
+        (conversation) => conversation.otherUser.id === activeConversation.id
+      )
+    } else {
+      return {}
+    }
+  }, [activeConversation, conversations]);
 
   const isConversation = (obj) => {
     return obj !== {} && obj !== undefined;

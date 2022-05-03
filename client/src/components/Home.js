@@ -81,14 +81,13 @@ const Home = ({ user, logout }) => {
   };
 
   const updateMessageInConversation = useCallback(
-    (message, reqBody) => {
+    (conversationId, seenByUser) => {
       setConversations((prev) =>
         prev.map((convo) => {
-          if (convo.id === message.conversationId) {
+          if (convo.id === conversationId) {
             const convoCopy = { ...convo };
             convoCopy.seenBy = convoCopy.messages.map(
-              (message) =>
-                (message.seenBy = [...message.seenBy, reqBody.seenBy])
+              (message) => (message.seenBy = [...message.seenBy, seenByUser])
             );
             return convoCopy;
           } else {
@@ -101,30 +100,23 @@ const Home = ({ user, logout }) => {
   );
 
   const handleMessageSeen = useCallback(
-    (messages, otherUser) => {
+    (messages, otherUser, activeConversation) => {
       const reqBody = {
-        messages: [],
-        otherUser: otherUser,
-        activeConversation,
+        messages: [...messages],
+        otherUser,
+        conversationId: activeConversation.conversationId,
         user,
       };
-
-      const messagesCopy = [...messages];
-
-      messagesCopy.map((message) => {
-        if (message.senderId === activeConversation.id) {
-          message.seenBy = [];
-          message.seenBy.push({ id: user.id, username: user.username });
-        }
-        return message;
-      });
-
-      reqBody.messages = messagesCopy;
+      const seenByUser = { id: user.id, username: user.username };
+      
       updateMessage(reqBody);
-      updateMessageInConversation(reqBody);
+      updateMessageInConversation(
+        activeConversation.conversationId,
+        seenByUser
+      );
       return reqBody;
     },
-    [activeConversation, updateMessageInConversation, user]
+    [user, updateMessageInConversation]
   );
 
   const addNewConvo = useCallback(
