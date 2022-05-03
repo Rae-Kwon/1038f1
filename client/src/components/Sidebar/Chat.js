@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Badge, Box } from '@material-ui/core';
+import { Box } from '@material-ui/core';
 import { BadgeAvatar, ChatContent } from '../Sidebar';
 import { makeStyles } from '@material-ui/core/styles';
+import UnreadMessages from './UnreadMessages';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -14,7 +15,6 @@ const useStyles = makeStyles((theme) => ({
     '&:hover': {
       cursor: 'grab',
     },
-    notificationBadge: {},
   },
 }));
 
@@ -31,32 +31,27 @@ const Chat = ({
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    let currentUnreadCount = 0;
-    messages.forEach((message) => {
-      if (
-        message.senderId !== user.id &&
-        message.conversationId === conversation.id
-      ) {
-        const userHasSeen = message.seenBy.some((seen) => seen.id === user.id);
-        if (!userHasSeen) {
-          currentUnreadCount += 1;
-        }
-      }
-    });
-    setUnreadCount(currentUnreadCount);
-  }, [messages, conversation, user]);
-
-  useEffect(() => {
     if (activeConversation && activeConversation.id !== user.id) {
-      handleMessageSeen(messages);
+      handleMessageSeen(messages, otherUser);
       if (activeConversation.id === otherUser.id) {
         setUnreadCount(0);
       }
     }
-  }, [messages, activeConversation, otherUser, handleMessageSeen, user]);
+  }, [
+    messages,
+    activeConversation,
+    otherUser,
+    handleMessageSeen,
+    user,
+    setUnreadCount,
+  ]);
 
   const handleClick = (conversation) => {
-    setActiveChat(conversation.otherUser.id, conversation.otherUser.username);
+    setActiveChat(
+      conversation.otherUser.id,
+      conversation.otherUser.username,
+      conversation.id
+    );
   };
 
   return (
@@ -75,11 +70,12 @@ const Chat = ({
         setOtherUserMessages={setOtherUserMessages}
         setUnreadCount={setUnreadCount}
       />
-      <Badge
-        className={classes.notificationBadge}
-        badgeContent={unreadCount}
-        color="primary"
-        max={99}
+      <UnreadMessages
+        messages={messages}
+        conversation={conversation}
+        user={user}
+        unreadCount={unreadCount}
+        setUnreadCount={setUnreadCount}
       />
     </Box>
   );

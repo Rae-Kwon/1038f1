@@ -12,7 +12,7 @@ const Message = db.define("message", {
 	},
 	seenBy: {
 		type: Sequelize.ARRAY(Sequelize.JSONB()),
-    allowNull: false,
+		allowNull: false,
 	},
 });
 

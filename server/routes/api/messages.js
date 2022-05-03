@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { Sequelize } = require("sequelize");
+const { Sequelize, Op } = require("sequelize");
 const { Conversation, Message } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
 
@@ -19,7 +19,7 @@ router.post("/", async (req, res, next) => {
 				senderId,
 				text,
 				conversationId,
-        seenBy: []
+				seenBy: [],
 			});
 			return res.json({ message });
 		}
@@ -53,16 +53,25 @@ router.post("/", async (req, res, next) => {
 
 router.put("/", async (req, res, next) => {
 	try {
-		if (!req.user) {
+		const { messages, otherUser, activeConversation, user } = req.body;
+		const conversationId = activeConversation.conversationId;
+		if (!req.user && !otherUser) {
 			return res.sendStatus(404);
 		}
 
-		const { seenBy, id } = req.body;
-    const data = JSON.stringify(seenBy)
-
-		const message = await Message.update(
-			{ seenBy: Sequelize.fn("array_append", Sequelize.col("seenBy"), data) },
-			{ where: { id } }
+		const message = await Promise.all(
+			messages.map(async (msg) => {
+				await Message.update(
+					{ seenBy: msg.seenBy },
+					{
+						where: {
+							conversationId,
+							seenBy: [],
+							senderId: { [Op.not]: user.id },
+						},
+					}
+				);
+			})
 		);
 
 		res.json({ message });

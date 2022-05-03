@@ -86,7 +86,7 @@ const Home = ({ user, logout }) => {
         prev.map((convo) => {
           if (convo.id === message.conversationId) {
             const convoCopy = { ...convo };
-            convoCopy.messages.map(
+            convoCopy.seenBy = convoCopy.messages.map(
               (message) =>
                 (message.seenBy = [...message.seenBy, reqBody.seenBy])
             );
@@ -101,33 +101,27 @@ const Home = ({ user, logout }) => {
   );
 
   const handleMessageSeen = useCallback(
-    (messages) => {
+    (messages, otherUser) => {
       const reqBody = {
-        seenBy: {},
-        id: null,
+        messages: [],
+        otherUser: otherUser,
+        activeConversation,
+        user,
       };
 
-      messages.forEach((message) => {
+      const messagesCopy = [...messages];
+
+      messagesCopy.map((message) => {
         if (message.senderId === activeConversation.id) {
-          const messageCreatedAt = new Date(message.createdAt).getTime();
-          const timeNow = Date.now();
-          const userHasSeen = message.seenBy.some(
-            (seen) => seen.id === user.id
-          );
-
-          if (messageCreatedAt < timeNow) {
-            reqBody.seenBy = { id: user.id, username: user.username };
-            reqBody.id = message.id;
-          }
-
-          if (!userHasSeen) {
-            if (message.senderId !== user.id) {
-              updateMessage(reqBody);
-              updateMessageInConversation(message, reqBody);
-            }
-          }
+          message.seenBy = [];
+          message.seenBy.push({ id: user.id, username: user.username });
         }
+        return message;
       });
+
+      reqBody.messages = messagesCopy;
+      updateMessage(reqBody);
+      updateMessageInConversation(reqBody);
       return reqBody;
     },
     [activeConversation, updateMessageInConversation, user]
@@ -184,8 +178,8 @@ const Home = ({ user, logout }) => {
   );
 
   const setActiveChat = useCallback(
-    (id, username) => {
-      setActiveConversation({ id, username });
+    (id, username, conversationId) => {
+      setActiveConversation({ id, username, conversationId });
     },
     [setActiveConversation]
   );

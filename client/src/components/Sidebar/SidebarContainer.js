@@ -9,7 +9,6 @@ const SidebarContainer = ({
   addSearchedUsers,
   setActiveChat,
   updateMessage,
-  messagesSeen,
   updateMessagesSeen,
   activeConversation,
   handleMessageSeen,
@@ -28,7 +27,7 @@ const SidebarContainer = ({
   const handleChange = async (event) => {
     if (event.target.value === '') {
       // clear searched convos
-      clearSearchedUsers()
+      clearSearchedUsers();
       setSearchTerm('');
       return;
     }
@@ -49,7 +48,6 @@ const SidebarContainer = ({
       user={user}
       setActiveChat={setActiveChat}
       updateMessage={updateMessage}
-      messagesSeen={messagesSeen}
       updateMessagesSeen={updateMessagesSeen}
       activeConversation={activeConversation}
       handleMessageSeen={handleMessageSeen}

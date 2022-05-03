@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { Box } from '@material-ui/core';
 import { Input, Header, Messages } from './index';
@@ -26,16 +26,26 @@ const ActiveChat = ({
   postMessage,
 }) => {
   const classes = useStyles();
+  const [messages, setMessages] = useState(null);
 
-  const conversation = conversations && activeConversation
-    ? conversations.find(
-        (conversation) => conversation.otherUser.username === activeConversation.username
-      )
-    : {};
+  const conversation = useMemo(
+    () =>
+      conversations && activeConversation
+        ? conversations.find(
+            (conversation) =>
+              conversation.otherUser.id === activeConversation.id
+          )
+        : {},
+    [conversations, activeConversation]
+  );
 
   const isConversation = (obj) => {
     return obj !== {} && obj !== undefined;
   };
+
+  useEffect(() => {
+    setMessages(conversation.messages);
+  }, [conversation]);
 
   return (
     <Box className={classes.root}>
@@ -46,12 +56,13 @@ const ActiveChat = ({
             online={conversation.otherUser.online || false}
           />
           <Box className={classes.chatContainer}>
-            {user && (
+            {user && messages && (
               <>
                 <Messages
-                  messages={conversation.messages}
+                  messages={messages}
                   otherUser={conversation.otherUser}
                   userId={user.id}
+                  latestMessageRead={conversation.latestMessageRead}
                 />
                 <Input
                   otherUser={conversation.otherUser}

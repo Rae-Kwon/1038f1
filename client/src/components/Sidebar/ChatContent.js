@@ -29,8 +29,6 @@ const useStyles = makeStyles((theme) => ({
 const ChatContent = ({
   conversation,
   user,
-  unreadCount,
-  setUnreadCount,
   otherUserMessages,
   setOtherUserMessages,
 }) => {

@@ -25,7 +25,6 @@ const Sidebar = ({
   user,
   setActiveChat,
   updateMessage,
-  messagesSeen,
   updateMessagesSeen,
   activeConversation,
   handleMessageSeen,
@@ -49,7 +48,6 @@ const Sidebar = ({
               user={user}
               setActiveChat={setActiveChat}
               updateMessage={updateMessage}
-              messagesSeen={messagesSeen}
               updateMessagesSeen={updateMessagesSeen}
               activeConversation={activeConversation}
               handleMessageSeen={handleMessageSeen}
