@@ -53,25 +53,26 @@ router.post("/", async (req, res, next) => {
 
 router.put("/", async (req, res, next) => {
 	try {
-		const { messages, otherUser, conversationId, user } = req.body;
-		if (!req.user && !otherUser) {
-			return res.sendStatus(404);
+		const { otherUser, conversationId, user } = req.body;
+		if (!req.user) {
+			return res.sendStatus(401);
 		}
 
-		const message = await Promise.all(
-			messages.map(async (msg) => {
-				await Message.update(
-					{ seenBy: msg.seenBy },
-					{
-						where: {
-							conversationId,
-							seenBy: [],
-							senderId: { [Op.not]: user.id },
-						},
-					}
-				);
-			})
-		);
+		if (!otherUser) {
+			return res.sendStatus(403)
+		}
+
+		const seenByUser = JSON.stringify({ id: user.id, username: user.username })
+		const message = await Message.update(
+			{ seenBy: Sequelize.fn('array_append', Sequelize.col('seenBy'), seenByUser ) },
+			{
+				where: {
+					conversationId,
+					seenBy: [],
+					senderId: { [Op.not]: user.id }
+				}
+			}
+		)
 		res.json({ message });
 	} catch (error) {
 		next(error);

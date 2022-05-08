@@ -83,7 +83,7 @@ const Home = ({ user, logout }) => {
   const updateMessageInConversation = useCallback(
     (conversationId, seenByUser) => {
       setConversations((prev) =>
-        prev.map((convo) => {
+        prev.map((convo, index) => {
           if (convo.id === conversationId) {
             const convoCopy = { ...convo };
             convoCopy.seenBy = convoCopy.messages.map(
@@ -100,15 +100,14 @@ const Home = ({ user, logout }) => {
   );
 
   const handleMessageSeen = useCallback(
-    (messages, otherUser, activeConversation) => {
+    (otherUser, activeConversation) => {
       const reqBody = {
-        messages: [...messages],
         otherUser,
         conversationId: activeConversation.conversationId,
         user,
       };
       const seenByUser = { id: user.id, username: user.username };
-      
+
       updateMessage(reqBody);
       updateMessageInConversation(
         activeConversation.conversationId,

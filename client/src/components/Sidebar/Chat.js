@@ -30,7 +30,7 @@ const Chat = ({
   const [otherUserMessages, setOtherUserMessages] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  const handleClick = (conversation) => {
+  const handleClick = () => {
     setActiveChat(
       conversation.otherUser.id,
       conversation.otherUser.username,
@@ -45,16 +45,11 @@ const Chat = ({
       activeConversation.conversationId &&
       activeConversation.id === otherUser.id
     ) {
-      handleMessageSeen(messages, otherUser, activeConversation);
+      handleMessageSeen(otherUser, activeConversation);
       setUnreadCount(0);
     }
-  }, [
-    messages,
-    activeConversation,
-    otherUser,
-    handleMessageSeen,
-    user,
-  ]);
+    // eslint-disable-next-line
+  }, [activeConversation, otherUser, handleMessageSeen, user]);
 
   return (
     <Box onClick={() => handleClick(conversation)} className={classes.root}>
