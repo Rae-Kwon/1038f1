@@ -76,13 +76,56 @@ const Home = ({ user, logout }) => {
     }
   };
 
+  const updateMessage = async (body) => {
+    const { data } = await axios.put('/api/messages', body);
+    return data;
+  };
+
+  const updateMessageInConversation = useCallback(
+    (conversationId, seenByUser) => {
+      setConversations((prev) =>
+        prev.map((convo, index) => {
+          if (convo.id === conversationId) {
+            const convoCopy = { ...convo };
+            convoCopy.seenBy = convoCopy.messages.map(
+              (message) => (message.seenBy = [...message.seenBy, seenByUser])
+            );
+            return convoCopy;
+          } else {
+            return convo;
+          }
+        })
+      );
+    },
+    [setConversations]
+  );
+
+  const handleMessageSeen = useCallback(
+    (otherUser, activeConversation) => {
+      const reqBody = {
+        otherUser,
+        conversationId: activeConversation.conversationId,
+        user,
+      };
+      const seenByUser = { id: user.id, username: user.username };
+
+      updateMessage(reqBody);
+      updateMessageInConversation(
+        activeConversation.conversationId,
+        seenByUser
+      );
+      return reqBody;
+    },
+    [user, updateMessageInConversation]
+  );
+
   const addNewConvo = useCallback(
     (recipientId, message) => {
       setConversations((prev) =>
         prev.map((convo) => {
           if (convo.otherUser.id === recipientId) {
             const convoCopy = { ...convo };
-            convoCopy.messages = [...convoCopy.messages, message];
+            convoCopy.messages = [...convo.messages, message];
             convoCopy.latestMessageText = message.text;
             convoCopy.id = message.conversationId;
             return convoCopy;
@@ -91,7 +134,6 @@ const Home = ({ user, logout }) => {
           }
         })
       );
-      console.log(conversations)
     },
     [setConversations]
   );
@@ -100,26 +142,39 @@ const Home = ({ user, logout }) => {
     (data) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
       const { message, sender = null } = data;
-
-      setConversations((prev) =>
-        prev.map((convo) => {
-          if (convo.id === message.conversationId) {
-            const convoCopy = { ...convo };
-            convoCopy.messages = [...convoCopy.messages, message];
-            convoCopy.latestMessageText = message.text;
-            return convoCopy;
-          } else {
-            return convo;
-          }
-        })
-      );
+      if (sender !== null) {
+        const newConvo = {
+          id: message.conversationId,
+          otherUser: sender,
+          messages: [message],
+        };
+        newConvo.latestMessageText = message.text;
+        setConversations((prev) => [newConvo, ...prev]);
+      } else {
+        setConversations((prev) =>
+          prev.map((convo) => {
+            if (convo.id === message.conversationId) {
+              const convoCopy = { ...convo };
+              convoCopy.messages = [...convo.messages, message];
+              convoCopy.latestMessageText = message.text;
+              convoCopy.user = { ...sender };
+              return convoCopy;
+            } else {
+              return convo;
+            }
+          })
+        );
+      }
     },
     [setConversations]
   );
 
-  const setActiveChat = (username) => {
-    setActiveConversation(username);
-  };
+  const setActiveChat = useCallback(
+    (id, username, conversationId) => {
+      setActiveConversation({ id, username, conversationId });
+    },
+    [setActiveConversation]
+  );
 
   const addOnlineUser = useCallback((id) => {
     setConversations((prev) =>
@@ -156,7 +211,6 @@ const Home = ({ user, logout }) => {
     socket.on('add-online-user', addOnlineUser);
     socket.on('remove-offline-user', removeOfflineUser);
     socket.on('new-message', addMessageToConversation);
-
     return () => {
       // before the component is destroyed
       // unbind all event handlers used in this component
@@ -183,16 +237,18 @@ const Home = ({ user, logout }) => {
     const fetchConversations = async () => {
       try {
         const { data } = await axios.get('/api/conversations');
-        const dataCopy = [...data]
+        const dataCopy = [...data];
         dataCopy.forEach((conversation) => {
-          conversation.messages = conversation.messages.sort((currentConvo, nextConvo) => {
-            if (currentConvo > nextConvo) {
-              return 1
-            } else {
-              return -1
+          conversation.messages = conversation.messages.sort(
+            (currentConvo, nextConvo) => {
+              if (currentConvo > nextConvo) {
+                return 1;
+              } else {
+                return -1;
+              }
             }
-          })
-        })
+          );
+        });
         setConversations(dataCopy);
       } catch (error) {
         console.error(error);
@@ -220,6 +276,9 @@ const Home = ({ user, logout }) => {
           clearSearchedUsers={clearSearchedUsers}
           addSearchedUsers={addSearchedUsers}
           setActiveChat={setActiveChat}
+          updateMessage={updateMessage}
+          activeConversation={activeConversation}
+          handleMessageSeen={handleMessageSeen}
         />
         <ActiveChat
           activeConversation={activeConversation}

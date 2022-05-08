@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box } from '@material-ui/core';
 import { BadgeAvatar, ChatContent } from '../Sidebar';
 import { makeStyles } from '@material-ui/core/styles';
+import UnreadMessages from './UnreadMessages';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -17,13 +18,38 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const Chat = ({ conversation, setActiveChat }) => {
+const Chat = ({
+  conversation,
+  user,
+  setActiveChat,
+  activeConversation,
+  handleMessageSeen,
+}) => {
   const classes = useStyles();
-  const { otherUser } = conversation;
+  const { otherUser, messages } = conversation;
+  const [otherUserMessages, setOtherUserMessages] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  const handleClick = async (conversation) => {
-    await setActiveChat(conversation.otherUser.username);
+  const handleClick = () => {
+    setActiveChat(
+      conversation.otherUser.id,
+      conversation.otherUser.username,
+      conversation.id
+    );
   };
+
+  useEffect(() => {
+    if (
+      activeConversation &&
+      activeConversation.id !== user.id &&
+      activeConversation.conversationId &&
+      activeConversation.id === otherUser.id
+    ) {
+      handleMessageSeen(otherUser, activeConversation);
+      setUnreadCount(0);
+    }
+    // eslint-disable-next-line
+  }, [activeConversation, otherUser, handleMessageSeen, user]);
 
   return (
     <Box onClick={() => handleClick(conversation)} className={classes.root}>
@@ -33,7 +59,21 @@ const Chat = ({ conversation, setActiveChat }) => {
         online={otherUser.online}
         sidebar={true}
       />
-      <ChatContent conversation={conversation} />
+      <ChatContent
+        conversation={conversation}
+        user={user}
+        unreadCount={unreadCount}
+        otherUserMessages={otherUserMessages}
+        setOtherUserMessages={setOtherUserMessages}
+        setUnreadCount={setUnreadCount}
+      />
+      <UnreadMessages
+        messages={messages}
+        conversation={conversation}
+        user={user}
+        unreadCount={unreadCount}
+        setUnreadCount={setUnreadCount}
+      />
     </Box>
   );
 };
