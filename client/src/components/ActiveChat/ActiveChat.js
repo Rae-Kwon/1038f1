@@ -57,6 +57,7 @@ const ActiveChat = ({
           <Box className={classes.chatContainer}>
             {user && messages && (
               <>
+              {console.log(conversation.messages)}
                 <Messages
                   messages={messages}
                   otherUser={conversation.otherUser}
